@@ -21,6 +21,8 @@ Consider this a personal guide to the commands and functions you will learn. In 
 
 ## Things I learned on Jan.27
 
+data is case sensitive
+
 the command to set a working directory is setwd()
 ```{r}
 setwd("~/Documents/GitHub/data_journalism_2022_spring")
@@ -43,3 +45,19 @@ wv_summary <- wv_ppp_loans %>%
   )
 ```
 
+Mutation code
+```{r}
+mutate(name_of_column = value)
+```
+
+Select code, only shows the columns you ask for, but don't make it permanent
+```{r}
+  select(loan_number, amount, payroll_proceed)
+```
+
+Filtering
+```{r}
+maryland_ppp %>%
+  filter(name_of_column == 'word')
+
+```
