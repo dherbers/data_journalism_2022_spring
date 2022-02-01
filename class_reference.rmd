@@ -32,3 +32,14 @@ library-ing the tidyverse is very important
 install.packages("tidyverse")
 library(tidyverse)
 ```
+
+reading rds is a tidyverse function, you have to load it first
+
+saving as a variable, containing the results of the code
+```{r}
+wv_summary <- wv_ppp_loans %>%
+  summarise(
+    count_loans=n()
+  )
+```
+
