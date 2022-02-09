@@ -60,4 +60,5 @@ Filtering
 maryland_ppp %>%
   filter(name_of_column == 'word')
 
+  filter(is.na(forgiveness_date))
 ```
