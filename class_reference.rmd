@@ -62,3 +62,8 @@ maryland_ppp %>%
 
   filter(is.na(forgiveness_date))
 ```
+
+cleaned_wv_ppp_loans <- wv_ppp_loans %>%
+  clean_names() %>%
+  distinct() %>%
+  mutate(city = str_to_title(city))
