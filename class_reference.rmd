@@ -68,5 +68,8 @@ cleaned_wv_ppp_loans <- wv_ppp_loans %>%
   distinct() %>%
   mutate(city = str_to_title(city))
   
-  
-  
+  making dataframe
+```{r}
+  write_csv(college_park_loans, "data/college_park_loans.csv")
+
+```
