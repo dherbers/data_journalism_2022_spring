@@ -1,7 +1,7 @@
 ---
 title: "Reverse Engineering Project"
-author: "Student names here"
-date: "Date here"
+author: "Destiny Herbers"
+date: "March 4, 2022"
 output:
   html_document:
     theme: cerulean
@@ -18,13 +18,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-In this notebook, we are reverse engineering the story, [STORY NAME](STORY URL)
+In this notebook, we are reverse engineering the story, Nearly 250 women have been fatally shot by police since 2015 (Washington Post) https://www.washingtonpost.com/graphics/2020/investigations/police-shootings-women/ 
 
 ## Load libraries
 
 Loading required libraries for this analysis.
 
 ```{r echo=FALSE, message=FALSE}
+options(scipen=999)
+library(tidyverse)
+library(janitor)
 
 ```
 
@@ -33,9 +36,7 @@ Loading required libraries for this analysis.
 In this section, describe the source of the data, write a basic data dictionary for data you are working with, and discuss any caveats or issues you discovered working with this data. 
 
 ```{r}
-# Load required data
-
-# Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
+fatal_police_shootings <- read_csv("data/fatal-police-shootings-data.csv")
 
 # Clean required data and prepare for analysis if needed. 
 
@@ -47,11 +48,17 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 1
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: Of men killed, 57 percent were armed with a gun and of women, 44 percent. In other cases, women were armed with knives, cars, toy weapons, hammers and hatchets.
+* **Analysis summary**: We brought the data into open refine to make a new column and get all of the weapons that include a gun to sort. We have the code to get the total killed men and total killed men who were armed with a gun, but we are stuck with how to calculate this percentage within R because there are no number columns to use in a formula, and we're not sure how to mutate for what we need.
 
 ```{r}
-# Put code to reverse engineer sentence here
+police_shootings_men <- fatal_police_shootings %>%
+  filter(gender == "M") %>%
+  group_by(armed_clean) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count))
+  
+
 
 # Display results of code below this codeblock
 
@@ -59,11 +66,15 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 2
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: Since 2015, police have killed 26 unarmed women, including Taylor. Of those, 14 were White, seven were Black, four were Hispanic and one’s race was unknown. 
+* **Analysis summary**: We ended up with similar numbers, but more total women, with 15 white women, 7 Black women, 5 Hispanic women, and 5 whose race were unknown. This might be because the Post considered women as only adults, but we do not know exactly what values they used to filter.
 
 ```{r}
-# Put code to reverse engineer sentence here
+fatal_police_shootings %>%
+  filter(armed == "unarmed", gender == "F") %>%
+  group_by(armed, gender, race) %>%
+  summarise(count=n())
+
 
 # Display results of code below this codeblock
 
