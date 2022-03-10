@@ -73,3 +73,14 @@ cleaned_wv_ppp_loans <- wv_ppp_loans %>%
   write_csv(college_park_loans, "data/college_park_loans.csv")
 
 ```
+
+
+rvest
+read_html()- give url, reads the HTML
+html_text()- gives text inside of a tag
+html_table()- given some html, finds all the <table>
+html_element()- given some html, supply a tag like p or ul OR xpath expression
+```{r}
+my_stuff <- url %>%
+  read_html() %>%
+  html_element('p b') #this finds all bold tags in p tags
