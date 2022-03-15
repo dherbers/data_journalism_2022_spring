@@ -33,6 +33,7 @@ library-ing the tidyverse is very important
 ```{r}
 install.packages("tidyverse")
 library(tidyverse)
+install.packages("tidycensus")
 ```
 
 reading rds is a tidyverse function, you have to load it first
