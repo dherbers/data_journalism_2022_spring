@@ -124,28 +124,69 @@ shootings_Black_women
 percent_Black_women
 ```
 
+
+***A note to you, Mr Willis*** 
+In the sentences we had originally chosen, the Post used information that isn't in the data we were given, specifically about the mental health status of the people who were killed and if they were killed in their homes. This data isn't in the rest of the GitHub repository either, so we went back to the story to find sentences that we could solve with the categories in the data set. We wanted more variance, but we were limited. 
+***End note***
+
 ### Sentence 4
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: "Black women... account for 20 percent of the women shot and killed and 28 percent of the unarmed deaths."
+* **Analysis summary**: For the percentage of women killed that were Black, we chose to calculate with only instances where race was known because they didn't specify in this sentence. We got 19.3%, which is within the margin of all of our calculations, so we believe we have replicated it. For the percentage of the unarmed deaths, we assumed that they were still referring to unarmed women, though it was not clear. We got 25.9%, which is outside of our normal error. These numbers could be different because they data was changed after publication, or because they used totals where race was not known.
 
 ```{r}
-# Put code to reverse engineer sentence here
+all_women_shootings <- shootings_race_known %>%
+  filter(gender == "F") %>%
+  summarise(count=n())
+
+shootings_Black_women
+
+percent_Black_of_women <- ((shootings_Black_women/all_women_shootings)*100)
+
+unarmed_deaths_women <- shootings_race_known %>%
+  filter(gender == "F", armed == "unarmed") %>%
+  summarise(count=n())
+
+Black_women_unarmed <- shootings_race_known %>%
+  filter(gender == "F", race == "B", armed == "unarmed") %>%
+  summarise(count=n())
+
+percent_Black_unarmed_women <- ((Black_women_unarmed/unarmed_deaths_women)*100)
 
 # Display results of code below this codeblock
-
+percent_Black_of_women
+percent_Black_unarmed_women
 ```
 
 ### Sentence 5
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: "Black men... make up 27 percent of the men shot and 36 percent of the unarmed deaths."
+* **Analysis summary**: For the percentage of men shot that were Black, we got 27%, which replicates their findings. Again, we assumed that they were working with shootings where race is known. The percentage of unarmed men who were Black in our calculation is 34%, which again is about 2% less than the Post's total. This consistency is interesting, because it seems unlikely that if more deaths were added post-publication, an equal number of unarmed non-Black men and women were killed. It is possible that because of the vague wording used in both sentences, the Post could have calculated their total differently than we did.
 
 ```{r}
-# Put code to reverse engineer sentence here
+all_men_shootings <- shootings_race_known %>%
+  filter(gender == "M") %>%
+  summarise(count=n())
+
+shootings_Black_men <- shootings_race_known %>%
+  filter(gender == "M", race == "B") %>%
+  summarise(count=n())
+
+percent_Black_of_men <- ((shootings_Black_men/all_men_shootings)*100)
+
+unarmed_deaths_men <- shootings_race_known %>%
+  filter(gender == "M", armed == "unarmed") %>%
+  summarise(count=n())
+
+Black_men_unarmed <- shootings_race_known %>%
+  filter(gender == "M", race == "B", armed == "unarmed") %>%
+  summarise(count=n())
+
+percent_Black_unarmed_men <- ((Black_men_unarmed/unarmed_deaths_men)*100)
 
 # Display results of code below this codeblock
-
+percent_Black_of_men
+percent_Black_unarmed_men
 ```
 
 -30-
