@@ -49,7 +49,7 @@ In this notebook, we are reverse engineering five sentences from the story.
 ### Sentence 1
 
 * **Sentence text**: Of men killed, 57 percent were armed with a gun and of women, 44 percent. In other cases, women were armed with knives, cars, toy weapons, hammers and hatchets.
-* **Analysis summary**: We brought the data into open refine to make a new column and get all of the weapons that included a gun to sort. When we calculated the percentages, we got roughly 58.9% of men and 45.3% of women, which is very close to the numbers in the story. Our count may be higher because the data may have been updated to include more instances after the Post made their calculations and published the story. 
+* **Analysis summary**: We brought the data into Open Refine to make a new column and get all of the weapons that included a gun to sort. When we calculated the percentages, we got roughly 58.9% of men and 45.3% of women, which is very close to the numbers in the story. Our count may be higher because the data may have been updated to include more instances after the Post made their calculations and published the story. 
 
 ```{r}
 all_police_shootings_by_gender <- fatal_police_shootings %>%
