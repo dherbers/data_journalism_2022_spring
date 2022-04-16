@@ -1,0 +1,16 @@
+---
+title: "data_analysis.rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Load and Clean Data**
+This data is already very clean, there are raw rows present indicating how the Stanford team probably changed things. We did not immediately see anything that needed to be cleaned, but when we start working with specific elements of the data, we wil have to do a lot of dropping N/A values and assigning value to N/A rows to make our calculations. We should be able to answer all of the questions, we intentionally chose San Diego because it had the data available that we wanted to look at. There are plenty of values, 383,027 stops recorded with 21 different parameters. There is also a shape file, so we might be able to create some maps. 
+
+```{r}
+library(tidyverse)
+san_diego_stops <- read_rds("data/yg821jf8611_ca_san_diego_2020_04_01.rds")
+```
