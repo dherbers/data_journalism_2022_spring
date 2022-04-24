@@ -12,5 +12,80 @@ This data is already very clean, there are raw rows present indicating how the S
 
 ```{r}
 library(tidyverse)
+library(janitor)
+library(lubridate)
+library(tigris)
+library(tidycensus)
+library(ggrepel)
+library(sf)
 san_diego_stops <- read_rds("data/yg821jf8611_ca_san_diego_2020_04_01.rds")
+```
+
+**Question 1:**
+What age groups are stopped at the highest rate when age is known? 
+**Answer**
+25 to 35 year old drivers account for the largest portion of people stopped when race is known. The total increases and decreases on a steady curve before and after this category.
+
+```{r}
+age_grouped_san_diego <-san_diego_stops %>%
+mutate(
+  age_group = case_when(
+    subject_age < 18 ~ 'under_18',
+    subject_age >=18 & subject_age < 25 ~ '18_25',
+    subject_age >= 25 & subject_age < 35 ~ '25_35',
+    subject_age >= 35 & subject_age < 45 ~ '35_45',
+    subject_age >= 45 & subject_age < 55 ~ '45_55',
+   subject_age >= 55 & subject_age < 65 ~ '55_65',
+   subject_age >= 65 ~'65+'
+))
+
+age_grouped_san_diego <- age_grouped_san_diego %>%
+  drop_na(age_group)
+
+age_group_counts <- age_grouped_san_diego %>%
+  group_by(age_group) %>%
+  summarise(count=n())
+```
+
+
+**Question 2:**
+Which age group is most often searched for contraband when they are stopped?
+**Answer**
+5.7% of 18 to 25 year old drivers were searched when stopped, which is 0.6% more than the 25 to 35 age category.
+
+```{r}
+searches_age_groups_san_diego <- age_grouped_san_diego %>%
+  filter(search_conducted == "TRUE") %>%
+  drop_na(age_group) %>%
+  group_by(age_group) %>%
+  summarise(count=n())
+
+percentage_search <- age_group_counts %>%
+    inner_join(searches_age_groups_san_diego, by=c("age_group")) %>%
+    rename(total=count.x,search=count.y)
+
+percentage_search <- percentage_search %>%
+  mutate(percent_search=(search/total)*100)
+```
+
+
+**Question 3**
+When a search is performed, what group most often had contraband? AKA How often were police correct in conducting searches?
+
+**Answer**
+11.3% of 45 to 55 year old drivers had contraband found when they were searched, followed by 10.3% of 18 to 25 year old drivers and 10.1% of drivers under 18. The percentage of drivers stopped with contraband found in 25 to 35 is comparatively low with 8.9%
+
+```{r}
+searches_age_groups_contraband <- age_grouped_san_diego %>%
+    filter(search_conducted == "TRUE", contraband_found == "TRUE") %>%
+    group_by(age_group) %>%
+    summarise(count=n())
+
+percentage_search_contraband <- percentage_search %>%
+    inner_join(searches_age_groups_contraband, by=c("age_group")) %>%
+    rename(contraband=count)
+
+percentage_search_contraband <- percentage_search_contraband %>%
+  mutate(percent_contraband=(contraband/search)*100)
+
 ```
