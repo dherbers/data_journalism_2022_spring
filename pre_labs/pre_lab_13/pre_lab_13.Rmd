@@ -64,7 +64,7 @@ Let's start by plotting them to get a sense of the pattern.
 ### Task 3: Plot data
 **Task** Run the following code. Describe the plot. What do you see?
 **Answer**
-a scatter plot also showing a trend line and shadow 
+a scatter plot also showing a trend line and shadow, indicating that many businesses that received ppe were owned by Trump supporters
 ```{r}
 
 reveal_data %>%
@@ -80,7 +80,7 @@ Let's test another variable, the average amount of money provided by PPP per sma
 ### Task 4: Plot data
 **Task** Run the following code. Describe the plot. What do you see?
 **Answer**
-a similar plot, but the trends vs. the dots look less clear
+a similar plot, but the trends vs. the dots look less clear because they seem to be farther from the line
 ```{r}
 
 reveal_data %>%
@@ -124,7 +124,7 @@ The relationship between businesses in a state receiving ppe and the state's Tru
 ### Task 6: Correlate data
 **Task** Run the following code. Describe the model output. What do you see?
 **Answer**
-0.52 correlation, which isn't a super meaningful result
+0.52 correlation, which isn't a super meaningful result, though it is a stronger correlation than the previous
 ```{r}
 
 cor.test(reveal_data$pct_trump, reveal_data$businesses_receiving_ppe_pct)
@@ -138,6 +138,7 @@ Now let's test the other one, the relationship between the pct_trump and the ppe
 ### Task 7: Correlate data
 **Task** Run the following code. Describe the model output. What do you see?
 **Answer**
+the correlation is only 0.221133 and the p-value is 0.1189, so the correlation is very low, but the chance of error is much higher, so the result is not trustworthy
 ```{r}
 
 cor.test(reveal_data$pct_trump, reveal_data$ppe_amount_per_employee)
@@ -164,6 +165,7 @@ We could just calculate the averages like we're used to doing.
 ### Task 8: Average data
 **Task** Run the following code. Describe the table. What do you see?
 **Answer**
+Trump voters had higher mean ppp amount per employee and mean percent of businesses receiving ppe 
 ```{r}
 reveal_data %>%
   group_by(vote_2016) %>%
@@ -182,6 +184,7 @@ A t-test can help us answer that question.  It can tell us where there's a stati
 ### Task 9: Run t-test
 **Task** Run the following code. Describe the output. What do you see?
 **Answer**
+the p-value is 0.2295, which is very high, so the results are not relaible
 ```{r}
 t.test(ppe_amount_per_employee ~ vote_2016, data = reveal_data)
 ```
@@ -192,6 +195,7 @@ Let's try the percentage of businesses getting ppp loans.
 ### Task 10: Run t-test
 **Task** Run the following code. Describe the output. What do you see?
 **Answer**
+the p-value is 0.002643, which is low, so the results are probably more trustworthy
 ```{r}
 t.test(businesses_receiving_ppe_pct ~ vote_2016, data = reveal_data)
 ```
