@@ -85,3 +85,34 @@ html_element()- given some html, supply a tag like p or ul OR xpath expression
 my_stuff <- url %>%
   read_html() %>%
   html_element('p b') #this finds all bold tags in p tags
+```
+
+```{r}
+age_under_18 <- san_diego_stops %>%
+  filter(subject_age < 18) %>%
+  nrow()
+
+age_18_24 <- san_diego_stops %>%
+  filter(subject_age >=18, subject_age<25) %>%
+  nrow() 
+  
+age_25_34 <- san_diego_stops %>%
+  filter(subject_age >=25, subject_age<35) %>%
+  nrow()
+
+age_35_44 <- san_diego_stops %>%
+  filter(subject_age >=35, subject_age<45) %>%
+  nrow()
+
+age_45_54 <- san_diego_stops %>%
+  filter(subject_age >=45, subject_age<55) %>%
+  nrow()
+
+age_55_64 <- san_diego_stops %>%
+  filter(subject_age >=55, subject_age<65) %>%
+  nrow()
+
+age_65_and_up <- san_diego_stops %>%
+  filter(subject_age >=65) %>%
+  nrow()
+```

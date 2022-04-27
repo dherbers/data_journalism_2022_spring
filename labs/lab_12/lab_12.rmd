@@ -45,7 +45,7 @@ Then write code that will construct a paragraph about the data described above c
 Put your sentence in the answer below, along with one other question you could ask of this data.
 
 **A1.**
-
+"The most recent crime incident reported by WVU police on April 21 was SUSPICIOUS EVENT, in the past 30 days there have been 7 total incidents of this crime." We could also ask the data if this is an increase or decrease over a past amount of time, like from the last month.
 ```{r}
 wv_crime_log <- read_csv("https://raw.githubusercontent.com/dwillis/wvu-projects/master/crime-log/crime_log.csv") %>% clean_names()
 
@@ -89,8 +89,33 @@ To do that, you will need to:
 Google the top 2-3 zip codes from both Maryland and non-Maryland results and describe them in your answer.
 
 **A2.**
+Maryland: 20906 is in Montgomery County near Wheaton, 20878is in Montgomery County near North Potomac, 20874 is in Montgomery County near Germantown
+
+Non-Maryland: 20011 is in Northeast DC, 20002 is also in Northeast DC, 20009 is in DC in Adams Morgan-ish
 
 ```{r}
+md_vax <- read_csv("https://raw.githubusercontent.com/state-of-maryland/VaccineCSVs/master/Vax_ZIP_CODE_FirstSecondSingle_Totals_Raw.csv") %>% 
+  clean_names() %>%  
+  mutate(date = today())
+
+md_vax <- md_vax %>%
+    drop_na(fully_vaccinated) %>%
+    mutate(zip_code = str_sub(zip_code, 1, 5)) %>%
+    filter(zip_code >= 10000) %>%
+    group_by(fully_vaccinated, zip_code, date) %>%
+    arrange(desc(fully_vaccinated))
+
+maryland_zips_yyyymmdd <- md_vax %>%
+  filter(zip_code >= 20588, zip_code <= 21930) %>%
+  head(25)
+
+non_maryland_zips_yyyymmdd <- md_vax %>%
+  filter(zip_code < 20588|zip_code > 21930)  %>%
+  head(25)
+
+write_csv(x=maryland_zips_yyyymmdd, "data/maryland_zips_yyyymmdd.csv")
+
+write_csv(x=non_maryland_zips_yyyymmdd, "data/non_maryland_zips_yyyymmdd.csv")
 ```
 
 **Q3.** Maryland has had one of the more successful vaccination rates, but you want to understand where a significant portion of the population remains less than fully vaccinated. Make a dataframe of all Maryland zip codes from the vaccination data you used in Q2 and join it to Maryland zip code population data from the Census API. Calculate the percentage of fully vaccinated for each zip code and then make a map showing the zip codes with less than 50 percent fully vaccinated. Put a blank map with the outline of Maryland counties (which you can get from Tigris) behind it for context. Add a label to the map describing what the data is and include the date from the vaccination data (programmatically, so you can run it every day).
@@ -100,6 +125,42 @@ You WILL need to ensure that the columns you use to join the two dataframes are 
 Describe the output of the map below, and say what you think the most interesting areas are.
 
 **A3.**
+The map shows many counties on the western and eastern edges of Maryland have low vaccination rates. There also appears to be a couple of spots of extremely low vaccination rates within Prince George's county, which would be worth looking into, because the rest of the area is more than 50% vaccinated. Anne Arundel county is similar, and also would be worth investigating.
 
 ```{r}
+maryland_vax <- md_vax %>%
+  filter(zip_code >= 20588, zip_code <= 21930) %>%
+  mutate(zip_code = as.numeric(zip_code))
+
+maryland_pop <- get_acs(geography = "zcta",
+              variables = c(population = "B01001_001"),
+              state = "MD",
+              year = 2019,
+              geometry = TRUE)
+
+maryland_pop <- maryland_pop %>%
+  rename(zip_code = GEOID) 
+
+maryland_pop <- maryland_pop %>%
+  mutate(zip_code = as.numeric(zip_code))
+
+maryland_vax_with_pop <- maryland_pop %>%
+  inner_join(maryland_vax, by=c("zip_code")) %>%
+  select(-NAME, -variable, -moe) %>%  
+  mutate(percent_vax = fully_vaccinated/estimate*100)
+
+maryland_vax_with_pop <- maryland_vax_with_pop %>%
+  filter(percent_vax < 50)
+
+counties <- counties()
+
+md_counties <- counties %>%
+  filter(STATEFP == "24")
+
+ggplot() + 
+  geom_sf(data=md_counties) + 
+  geom_sf(data=maryland_vax_with_pop, aes(fill=percent_vax)) +
+  theme_minimal() +
+  scale_fill_viridis_b(option="magma",trans = "log") +
+  labs(title = paste("Percent of population fully vaccinated on ",maryland_vax_with_pop$date, sep=""))
 ```
