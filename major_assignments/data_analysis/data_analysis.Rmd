@@ -24,7 +24,7 @@ san_diego_stops <- read_rds("data/yg821jf8611_ca_san_diego_2020_04_01.rds")
 **Question 1:**
 What age groups are stopped at the highest rate when age is known? 
 **Answer**
-25 to 35 year old drivers account for the largest portion of people stopped when race is known. The total increases and decreases on a steady curve before and after this category.
+25 to 35 year old drivers account for the largest portion of people stopped when age is known. The total increases and decreases on a steady curve before and after this category.
 
 ```{r}
 age_grouped_san_diego <-san_diego_stops %>%
@@ -87,5 +87,85 @@ percentage_search_contraband <- percentage_search %>%
 
 percentage_search_contraband <- percentage_search_contraband %>%
   mutate(percent_contraband=(contraband/search)*100)
+
+```
+
+
+**Question #4**
+Within the age groups with the identified age groups that have inconsistencies in searches and contraband found, how does race break down? Are people of a certain race being searched without contraband found at a higher rate?
+
+**Answer**
+
+```{r}
+searches_by_age_and_race <- age_grouped_san_diego %>%
+  drop_na(subject_age)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(searches = count)
+
+contraband_by_age_and_race <- age_grouped_san_diego %>%
+  drop_na(subject_age)%>%
+  filter(contraband_found == "TRUE")%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(contraband = count)
+
+race_percentage_search_contraband <- contraband_by_age_and_race %>%
+    inner_join(searches_by_age_and_race, by=c("age_group","subject_race"))
+
+race_percentage_search_contraband <- race_percentage_search_contraband %>%
+  mutate(percent_contraband=(contraband/searches)*100) %>%
+  arrange(desc(percent_contraband))
+
+stops_by_age_and_race <- age_grouped_san_diego %>%
+  drop_na(subject_age, subject_race)%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(stops = count)
+
+stops_percentage_searches <- stops_by_age_and_race %>%
+  inner_join(searches_by_age_and_race, by=c("age_group","subject_race"))
+
+stops_percentage_searches <- stops_percentage_searches %>%
+  mutate(percent_searched=(searches/stops)*100) %>%
+  arrange(desc(percent_searched))
+
+race_percentage_stops_search_contraband <- race_percentage_search_contraband %>%
+  inner_join(stops_percentage_searches, by=c("age_group","subject_race","searches"))
+
+```
+
+**Question 5**
+Where are these stops with the identified inconsistencies and race happening? Is there a concentration in a certain area? Does that area have high populations of a certain race?
+
+**Answer**
+
+```{r}
+mega_stops<-age_grouped_san_diego%>%
+  drop_na(subject_age,)%>%
+    drop_na(subject_race)%>%
+  group_by(age_group, subject_race,service_area) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+mega_searches <- age_grouped_san_diego %>%
+  drop_na(subject_age)%>%
+  drop_na(subject_race)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by(age_group, subject_race, service_area) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+mega_seaches_mega_stops<-mega_stops%>%
+  inner_join(mega_searches, by=c("age_group","subject_race", "service_area"))%>%
+  rename(stops=count.x, searches=count.y)
+
+percent_mega_seaches_mega_stops <- mega_seaches_mega_stops %>%
+  mutate(percent_searched=(searches/stops)*100) %>%
+  arrange(desc(percent_searched))
 
 ```
