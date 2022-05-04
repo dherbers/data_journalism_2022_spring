@@ -34,10 +34,9 @@ When we decided to look at traffic stops, we were interested in understanding wh
 *Question 1:*
 What age groups are stopped at the highest rate when age is known? 
 
-To form our groups, we chose to loosely base the categories on the ages used by insurance companies to set rates
+To form our groups, we chose to loosely base the categories on the ages used by insurance companies to set rates. Most companies lower rates around age 25, then raise them again around 55-65. We also thought that teenagers might be pulled over at a different rate than adults, so we chose to make under 18 a category, and 18 to 25 another category. Using the same train of thought for people after retirement, we made 65 and up a category. Between 25 and 65, we broke the groups down by every 10 years, including the lowest age in each category. For example, 18-25 is actually 18-24 because 25 year olds are included in 25-35, which is actually 25-34 and so on.
 
-**Answer**
-25 to 35 year old drivers account for the largest portion of people stopped when age is known. The total increases and decreases on a steady curve before and after this category.
+We also chose to drop all rows containing N/A values for age, because we are focusing specifically on the age demographic and are only interested in looking at instances where age is known.
 
 ```{r}
 age_grouped_san_diego <-san_diego_stops %>%
@@ -60,11 +59,23 @@ age_group_counts <- age_grouped_san_diego %>%
   summarise(count=n())
 ```
 
-
-**Question 2:**
-Which age group is most often searched for contraband when they are stopped?
 **Answer**
-5.7% of 18 to 25 year old drivers were searched when stopped, which is 0.6% more than the 25 to 35 age category.
+25 to 35 year old drivers account for the largest portion of people stopped when age is known, by nearly 4,000 stops. This is not a surprising finding to us, because we assume that the 25-35 age group might have the highest number of licensed drivers on the road. To better understand the findings, we turned it into a quick bar chart. 
+
+```{r}
+ggplot() +
+  geom_bar(data=age_group_counts, aes(x=age_group, weight=count))
+```
+The total increases and decreases on a steady curve before and after this category, aned almost perfectly follows the age categories we selected, other than the under 18 group, which is signficantly less than the other age groups. This could probably also be attributed to the number of licensed drivers in that age group. Unfortunately data on the ages and amounts of licensed drivers on the road in San Diego is not readily available to look at, so we cannot confirm that hypothesis. 
+
+Either way, these very general findings are not surprising nor interesting, but we thought that a closer look based on the outcomes of stops might yield more interesting results. 
+
+*Question 2:*
+Which of these age groups is most often searched for contraband when they are stopped?
+
+San Diego provided data both on searches conducted and contraband found during those searches, so we filtered for instances where searches were conducted within our age groups. 
+
+Just knowing how many searches total in each age group was not very meaningful for us, so we decided to join the data frame to the total stops per age group, and calculated a percentage. The percent search category showed us which age groups had the highest percentage of searches conducted per stop.
 
 ```{r}
 searches_age_groups_san_diego <- age_grouped_san_diego %>%
@@ -81,12 +92,22 @@ percentage_search <- percentage_search %>%
   mutate(percent_search=(search/total)*100)
 ```
 
-
-**Question 3**
-When a search is performed, what group most often had contraband? AKA How often were police correct in conducting searches?
-
 **Answer**
-11.3% of 45 to 55 year old drivers had contraband found when they were searched, followed by 10.3% of 18 to 25 year old drivers and 10.1% of drivers under 18. The percentage of drivers stopped with contraband found in 25 to 35 is comparatively low with 8.9%
+5.7% of 18 to 25 year old drivers were searched when stopped, which is 0.6% more than the 25 to 35 age category, who represent the most instances of traffic stops. From this finding, we can reasonably say that 18 to 25 year old drivers are searched more often than others.
+
+For a better perspective of the differences between each age category, we looked at another quick bar chart.
+```{r}
+ggplot() +
+  geom_bar(data=percentage_search, aes(x=age_group, weight=percent_search))
+```
+Looking at this bar chart, the under 18 category is also right up there with the top two categories, which in an interesting result. Still, though, the differences between the numbers do not raise major red flags to us. They are fairly consistent with our expectations.
+
+Now we wanted to see how often these searches result in contraband actually being found. We were particularly interested in these findings because they imply accuracy, or lack thereof, in who the police choose to search when they are performing a traffic stop.
+
+*Question 3*
+When a search is performed, what group most often had contraband? A.K.A. How often were police correct in conducting searches?
+
+We added a simple filter for contraband to our last set of code to sort out the instances where people were both searched and had contraband, then joined it to our previous data frame and calculated the percent of instances where contraband were found per searches conducted to see everything side by side.
 
 ```{r}
 searches_age_groups_contraband <- age_grouped_san_diego %>%
@@ -103,14 +124,24 @@ percentage_search_contraband <- percentage_search_contraband %>%
 
 ```
 
+**Answer**
+11.3% of 45 to 55 year old drivers had contraband found when they were searched, followed by 10.3% of 18 to 25 year old drivers and 10.1% of drivers under 18. The percentage of drivers stopped with contraband found in 25 to 35 is comparatively low with 8.9%
 
+Another bar chart to see the relationships between these numbers:
+```{r}
+ggplot() +
+  geom_bar(data=percentage_search_contraband, aes(x=age_group, weight=percent_contraband))
+```
+These differences do not look so severe, but we are seeing certain groups suddenly pull ahead. Police are relatively not often pulling over or searching people ages 45-55, but that category has significantly more contraband found when they are searched. 
 
-We also knew that later on in our analysis, we would want to consider racial demographics because news coverage has consistently shown that race often influences the outcomes of interactions with police.
+On the other hand, people ages 25-35 are the most often pulled over, and very often searched, but are not one of the groups who most often have contraband. These findings were surprising to us, and had more meaning, but we still wanted to look closer.
 
-**Question #4**
+We wanted to consider racial demographics because news coverage has consistently shown that race often influences the outcomes of interactions with police.
+
+*Question 4*
 Within the age groups with the identified age groups that have inconsistencies in searches and contraband found, how does race break down? Are people of a certain race being searched without contraband found at a higher rate?
 
-**Answer**
+To answer this question, we brought all of our previous code down and ran the whole process again, this time also grouping by race, and dropping N/A values for race. With so many categories, the results were difficult to interpret, so we joined everything into one data frame to experiment with ordering the data by each percentage calculation to draw our conclusions.
 
 ```{r}
 searches_by_age_and_race <- age_grouped_san_diego %>%
@@ -155,12 +186,24 @@ race_percentage_stops_search_contraband <- race_percentage_search_contraband %>%
 
 ```
 
-**Question 5**
-Where are these stops with the identified inconsistencies and race happening? Is there a concentration in a certain area? Does that area have high populations of a certain race?
-
 **Answer**
+Black drivers under the age of 18 had the highest percentage of contraband found, 18%, and a relatively high percentage of searches per stop, 8.7%. Hispanic drivers under the age of 18 had the highest rate of searches, 12%, and a fairly low percentage of contraband found, 6%.
+
+These numbers are surprising, because the under 18 category was not noteworthy in our other calculations. Overall, we were surprised at the high rankings of Black drivers across age categories. 10.6% of Black drivers 18 to 25 were searched, and 10% of Black drivers 25 to 35 were also searched. After Hispanic drivers under 18, Black drivers hold the top 6 spots for search rates.
+
+San Diego's population is only 6.1% Black overall, according to the U.S. Census Bureau Quick Facts for the City of San Diego. With such a low population of Black people, but such high percentages of Black drivers being searched when stopped, this finding is definitely noteworthy and warrants more investigation into why so many Black drivers of all ages are being searched.
+
+It is also incredibly noteworthy that a white a group does not show up until number 15 when the data is sorted by percent searched. Only 3.4% of white drivers age 25-35 were searched, and of that group, 10.9% were found to have contraband. Sorted by percent contraband, white drivers hold 4th, 5th, and 7th place in the data frame. While they are rarely searched, white populations have consistently high rates of contraband found.
+
+Interpreting these numbers, we became curious about where these traffic stops with searches and contraband were taking place, and wanted to map them in the hope of seeing if they aligned with neighborhoods that might have corresponding population demographics. We wanted to understand if certain patrols were conducting a big portion of the searches we identified.
+
+*Question 5*
+Where are these stops with the identified inconsistencies and race happening? Is there a concentration in a certain area? 
+
+Again, we repeated the initial process, this time also adding in the service area column that the original data offered. We attempted to find a way to line the service areas up with a geographical boundary, including zipcodes, census tracks, and neighborhoods, but nothing fit. 
 
 ```{r}
+#repeating the process with all three categories
 mega_stops<-age_grouped_san_diego%>%
   drop_na(subject_age,)%>%
     drop_na(subject_race)%>%
@@ -185,3 +228,237 @@ percent_mega_seaches_mega_stops <- mega_seaches_mega_stops %>%
   arrange(desc(percent_searched))
 
 ```
+
+Like when we added in race, this process split the data into even more categories and became a mess that is nearly impossible for us to interpret. At this point, we realized that we had bitten off more than we could chew, because our original goal of mapping the trends in R is impossible unless we can assign meaningful geography to the service areas. If we were dedicated local reporters, we likely would have pushed the San Diego Police Department to give us more meaningful location data or help us line the service areas up to official geography.
+
+We are not, however, dogged San Diego reporters looking to make beautiful visualizations for a devoted audience, so we decided to count our losses and pivot away from looking at location data.
+
+***Pivot: New Comparisons***
+At the suggestion of our wise professor, we looked for a city of comparable size to San Diego with data on age, race, searches conducted, and contraband found to analyze and compare to San Diego. Keeping with the theme of San cities, we chose San Antonio. 
+
+In hindsight, San Antonio's data is more comprehensive and contains helpful location details, though they would have required cleaning. We learned that we should have initially opened and explored more cities before settling on San Diego.
+
+```{r}
+san_antonio <- read_rds("data/yg821jf8611_tx_san_antonio_2020_04_01.rds")
+```
+
+Our initial end goal was to directly compare the percentages that we found of searches per stop and contraband found per search, broken down into the age groups we created and the different races. So, we ran the exact same code process that we used above in questions one through four, this time with the San Antonio data.
+
+```{r}
+#sorting into age groups
+san_antonio_new<-san_antonio%>%
+mutate(
+  age_group = case_when(
+    subject_age < 18 ~ 'under_18',
+    subject_age >=18 & subject_age < 25 ~ '18_25',
+    subject_age >= 25 & subject_age < 35 ~ '23_35',
+    subject_age >= 35 & subject_age < 45 ~ '35_45',
+    subject_age >= 45 & subject_age < 55 ~ '45_55',
+   subject_age >= 55 & subject_age < 65 ~ '55_65',
+   subject_age >= 65 ~'65+'
+))
+  
+ sa_age_group_counts <- san_antonio_new %>%
+  drop_na(age_group)%>%
+  group_by(age_group) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+ 
+#filtering the age groups for searches conducted, calculating the percentage
+sa_searches_by_age <- san_antonio_new %>%
+  drop_na(subject_age)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by(age_group) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+sa_better_searches<-sa_age_group_counts%>%
+  inner_join(searches_by_age, by=c("age_group"))%>%
+   rename(total_stops=count.x, total_searches=count.y)%>%
+  mutate(percentage_searched = 
+           ((total_searches/total_stops)*100))%>%
+           arrange(desc(percentage_searched))
+
+#filtering the age groups with searches conducted for contraband, calculating the percentage
+sa_contraband <- san_antonio_new %>%
+   drop_na(subject_age)%>%
+  drop_na(contraband_found)%>%
+  filter(search_conducted == "TRUE", contraband_found == "TRUE")%>%
+  group_by(age_group) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+sa_searches_w_contraband<-sa_better_searches%>%
+  inner_join(contraband, by=c("age_group"))%>%
+  rename(contraband_found=count)%>%
+  mutate(percentage_w_contraband = 
+           ((contraband_found/total_searches)*100))%>%
+           arrange(desc(percentage_w_contraband))
+
+#repeating the entire process with race added 
+sa_searches_by_age_and_race <- san_antonio_new %>%
+  drop_na(subject_age)%>%
+    drop_na(subject_race)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+sa_contraband_w_race <- san_antonio_new %>%
+   drop_na(subject_age)%>%
+  drop_na(contraband_found)%>%
+  filter(search_conducted == "TRUE", contraband_found == "TRUE")%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+sa_searches_and_contraband_age_race<-sa_searches_by_age_and_race%>%
+  inner_join(contraband_w_race, by=c("age_group","subject_race"))%>%
+  rename(searches=count.x, contraband_found=count.y) %>%
+  mutate(percentage_w_contraband = 
+           ((contraband_found/searches)*100))%>%
+           arrange(desc(percentage_w_contraband))
+
+sa_stops_age_race<-san_antonio_new%>%
+  drop_na(subject_age)%>%
+    drop_na(subject_race)%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+sa_age_race_stops_etc<-sa_searches_and_contraband_age_race%>%
+  inner_join(stops_age_race, by=c("age_group","subject_race"))%>%
+  rename(stops=count)%>%
+  mutate(percentage_searched = 
+           ((searches/stops)*100))%>%
+           arrange(desc(percentage_searched))
+
+sa_mega_stops<-san_antonio_new%>%
+  drop_na(subject_age,)%>%
+    drop_na(subject_race)%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+   arrange(desc(count))
+
+sa_mega_searches <- san_antonio_new %>%
+  drop_na(subject_age)%>%
+  drop_na(subject_race)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by(age_group, subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+sa_mega_seaches_mega_stops<-sa_mega_stops%>%
+  inner_join(mega_searches, by=c("age_group","subject_race"))%>%
+  rename(stops=count.x, searches=count.y)%>%
+   mutate(percentage_searched = 
+           ((searches/stops)*100))%>%
+           arrange(desc(percentage_searched))
+```
+
+After running this and examining all of the race/age breakdowns in San Antonio, we notice that the highest percentages were so low compared to San Diego that we feel we cannot draw conclusion from direct comparisons of all of the sub-categories of combined race and age.
+
+Our solution to this new problem was zooming our perspective back out, and looking at the instances of searches and contraband found through only the lens of race to draw our comparisons between the cities. For both San Diego and San Antonio, we will start with the original data sets and re-run our process of filtering and calculating percentages, grouped only by race.
+
+```{r}
+#San Diego breakdown by race
+san_diego_searches_race <- san_diego_stops %>%
+  drop_na(subject_race)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by( subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(searches = count)
+
+san_diego_contraband_race <- san_diego_stops %>%
+  drop_na(subject_race)%>%
+  filter(contraband_found == "TRUE")%>%
+  group_by( subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(contraband = count)
+
+sd_race_percentage_search_contraband <- san_diego_contraband_race %>%
+    inner_join(san_diego_searches_race, by=c("subject_race"))
+
+sd_race_percentage_search_contraband <- sd_race_percentage_search_contraband %>%
+  mutate(percent_contraband=(contraband/searches)*100) %>%
+  arrange(desc(percent_contraband))
+
+san_diego_stops_race <- san_diego_stops %>%
+  drop_na(subject_race)%>%
+  group_by(subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(stops = count)
+
+sd_stops_percentage_searches <- san_diego_stops_race %>%
+  inner_join(san_diego_searches_race, by=c("subject_race"))
+
+sd_stops_percentage_searches <- sd_stops_percentage_searches %>%
+  mutate(percent_searched=(searches/stops)*100) %>%
+  arrange(desc(percent_searched))
+
+sd_race_percentage_stops_search_contraband <- sd_race_percentage_search_contraband %>%
+  inner_join(sd_stops_percentage_searches, by=c("subject_race","searches"))
+```
+
+Consistent with our more specific findings, 9% of Black drivers were searched when stopped, but only 9.3% of those searched had contraband, followed by 5.6% of Hispanic drivers, with 8.1% of those searched having contraband (the lowest.) White drivers, 2.8% of which were searched, had the highest prevalence of contraband found, 11.5%.
+
+White drivers in San Diego are least often searched when stopped (other than cases where race was marked "other"), but have the highest occurrence of contraband found when searched by an entire percentage point.
+
+```{r}
+#San Antonio breakdown by race
+san_antonio_searches_race <- san_antonio %>%
+  drop_na(subject_race)%>%
+  filter(search_conducted == "TRUE")%>%
+  group_by( subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(searches = count)
+
+san_antonio_contraband_race <- san_antonio %>%
+  drop_na(subject_race)%>%
+  filter(contraband_found == "TRUE")%>%
+  group_by(subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(contraband = count)
+
+sa_race_percentage_search_contraband <- san_antonio_contraband_race %>%
+    inner_join(san_antonio_searches_race, by=c("subject_race"))
+
+sa_race_percentage_search_contraband <- sa_race_percentage_search_contraband %>%
+  mutate(percent_contraband=(contraband/searches)*100) %>%
+  arrange(desc(percent_contraband))
+
+san_antonio_stops_race <- san_antonio %>%
+  drop_na(subject_race)%>%
+  group_by(subject_race) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  rename(stops = count)
+
+sa_stops_percentage_searches <- san_antonio_stops_race %>%
+  inner_join(san_antonio_searches_race, by=c("subject_race"))
+
+sa_stops_percentage_searches <- sa_stops_percentage_searches %>%
+  mutate(percent_searched=(searches/stops)*100) %>%
+  arrange(desc(percent_searched))
+
+sa_race_percentage_stops_search_contraband <- sa_race_percentage_search_contraband %>%
+  inner_join(sa_stops_percentage_searches, by=c("subject_race","searches"))
+
+```
+
+In San Antonio, Black drivers were more likely to be searched again, at 1.4%, though they are the least likely known race to have contraband, with only 7.8% contraband found. This time, though, they are followed by 0.8% of white drivers searched, with 10.7% of those drivers having contraband.
+
+Asian and Pacific Islander drivers had the highest percentage of contraband, 13.6%, and the lowest rate of being searched, 0.2%. The sample size of these drivers is so small related to the other categories that we would not rely on these findings without population comparisons, though.
+
+***Big Picture Conclusions (UNDER CONSTRUCTION)***
+
+Overall, it seems like police in San Antonio are not likely to search drivers when performing traffic stops, or it is possible that officers in San Diego search drivers excessively. Analysis of other cities, and possibly even the nation, would be necessary to determine which is the case.
+
+For the final iteration of our project, we will be combining San Diego's and San Antonio's race breakdowns into one data frame and creating some sort of visualization to compare the two. 
+
+With our current analysis, we would say that our findings in San Diego of disparity between the rates of searches conducted and contraband found among Black and Hispanic drivers compared to the rates among white drivers are newsworthy, and may carry implications of racial bias in policies and decisions around searching drivers during traffic stops.
