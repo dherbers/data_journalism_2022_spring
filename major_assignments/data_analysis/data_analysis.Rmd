@@ -273,7 +273,7 @@ sa_searches_by_age <- san_antonio_new %>%
   arrange(desc(count))
 
 sa_better_searches<-sa_age_group_counts%>%
-  inner_join(searches_by_age, by=c("age_group"))%>%
+  inner_join(sa_searches_by_age, by=c("age_group"))%>%
    rename(total_stops=count.x, total_searches=count.y)%>%
   mutate(percentage_searched = 
            ((total_searches/total_stops)*100))%>%
@@ -289,7 +289,7 @@ sa_contraband <- san_antonio_new %>%
    arrange(desc(count))
 
 sa_searches_w_contraband<-sa_better_searches%>%
-  inner_join(contraband, by=c("age_group"))%>%
+  inner_join(sa_contraband, by=c("age_group"))%>%
   rename(contraband_found=count)%>%
   mutate(percentage_w_contraband = 
            ((contraband_found/total_searches)*100))%>%
@@ -313,7 +313,7 @@ sa_contraband_w_race <- san_antonio_new %>%
    arrange(desc(count))
 
 sa_searches_and_contraband_age_race<-sa_searches_by_age_and_race%>%
-  inner_join(contraband_w_race, by=c("age_group","subject_race"))%>%
+  inner_join(sa_contraband_w_race, by=c("age_group","subject_race"))%>%
   rename(searches=count.x, contraband_found=count.y) %>%
   mutate(percentage_w_contraband = 
            ((contraband_found/searches)*100))%>%
@@ -327,7 +327,7 @@ sa_stops_age_race<-san_antonio_new%>%
    arrange(desc(count))
 
 sa_age_race_stops_etc<-sa_searches_and_contraband_age_race%>%
-  inner_join(stops_age_race, by=c("age_group","subject_race"))%>%
+  inner_join(sa_stops_age_race, by=c("age_group","subject_race"))%>%
   rename(stops=count)%>%
   mutate(percentage_searched = 
            ((searches/stops)*100))%>%
@@ -454,6 +454,40 @@ sa_race_percentage_stops_search_contraband <- sa_race_percentage_search_contraba
 In San Antonio, Black drivers were more likely to be searched again, at 1.4%, though they are the least likely known race to have contraband, with only 7.8% contraband found. This time, though, they are followed by 0.8% of white drivers searched, with 10.7% of those drivers having contraband.
 
 Asian and Pacific Islander drivers had the highest percentage of contraband, 13.6%, and the lowest rate of being searched, 0.2%. The sample size of these drivers is so small related to the other categories that we would not rely on these findings without population comparisons, though.
+
+```{r}
+#Combining San Diego and San Antonio
+wow_look_at_this<-sa_race_percentage_stops_search_contraband %>%
+  inner_join(sd_race_percentage_stops_search_contraband, by=c("subject_race")) %>%
+  rename(san_antonio_contraband=contraband.x,san_antonio_searches=searches.x,san_antonio_percentage_contraband=percent_contraband.x,san_diego_contraband=contraband.y,san_diego_searches=searches.y,san_diego_percentage_contraband=percent_contraband.y)
+```
+
+
+```{r}
+# A is white, Black is B, I is Hispanic, D is Asian, E is pacific island
+california_pop <- get_acs ('place',
+                           variables=c("B01001_001","B01001A_001","B01001B_001","B01001I_001","B01001D_001","B01001E_001"),
+                           year=2019,
+                           state = 'CA') %>% 
+                           filter(GEOID == '0666000')
+
+california_pop <- california_pop %>%
+  mutate(
+   subject_race = case_when(
+    variable == "B01001_001" ~ 'total',
+    variable == "B01001A_001" ~ 'white',
+    variable == "B01001B_001" ~ 'black',
+    variable == "B01001I_001" ~ 'hispanic',
+    variable == "B01001D_001" ~ 'asian',
+    variable == "B01001E_001" ~ 'pacific islander',
+  ))
+
+#combining asian and pacific islander, 235676 + 5849 = 241525
+california_pop <- california_pop %>%
+  add_row(subject_race="asian/pacific islander", estimate=241525) %>%
+  select(-GEOID,-NAME,-variable,-moe)
+
+```
 
 ***Big Picture Conclusions (UNDER CONSTRUCTION)***
 

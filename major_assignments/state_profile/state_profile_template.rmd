@@ -16,10 +16,27 @@ The deliverable will be this R Markdown notebook and a data folder that you will
 ## Load libraries and establish settings
 
 **Task** Create a codeblock and load appropriate packages and settings for this assignment.
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(tigris)
+library(tidycensus)
+library(ggrepel)
+library(sf)
+```
+
+```{r}
+maine_ppp <- read_csv("data/maine_ppp.csv") %>% clean_names()
+```
 
 ## Initial Exploration
 
 **Q1.**. Write R code that generates some basic descriptive statistics that allows you to describe the applications from your state. This code should produce results that describe the data in different ways: how many applications there are, along with ways to understand the typical and most frequent values for columns you find interesting or newsworthy. You should produce at least five (5) descriptive statistics and write up a summary of the data using them.
+
+```{r}
+
+```
 
 **A1.** 
 
@@ -28,11 +45,19 @@ The deliverable will be this R Markdown notebook and a data folder that you will
 
 **Q2.** Write R code that examines geographic patterns for PPP loans in your state, using Census population information to calculate a per-capita figure for the state and counties and zip codes. Then, make a county map using ggplot showing the per-capita data and a zip code map showing the difference from the statewide per-capita figure. Describe the most interesting or newsworthy findings based on your exploration.
 
+```{r}
+
+```
+
 **A2.** 
 
 ## Lender Analysis
 
 **Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below.
+
+```{r}
+
+```
 
 **A3.** 
 
@@ -44,6 +69,10 @@ The deliverable will be this R Markdown notebook and a data folder that you will
 Does the distribution of PPP applications by the top 10 industries (by number of applications) roughly match the number of businesses reported in the Census data? Does it roughly match if you remove self-employed individuals and sole proprietorships from the PPP totals? Write up a summary of what you've found and whether there are potentially newsworthy patterns in the data.
 
 Create a county-level map showing the differences between the PPP applications and the Census business data for one of the top 10 industry codes. You can do this either using ggplot or Datawrapper (if the latter, publish that map and include the URL below).
+
+```{r}
+
+```
 
 **A4.** 
 
