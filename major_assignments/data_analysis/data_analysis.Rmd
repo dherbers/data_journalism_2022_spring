@@ -462,6 +462,15 @@ wow_look_at_this<-sa_race_percentage_stops_search_contraband %>%
   rename(san_antonio_contraband=contraband.x,san_antonio_searches=searches.x,san_antonio_percentage_contraband=percent_contraband.x,san_diego_contraband=contraband.y,san_diego_searches=searches.y,san_diego_percentage_contraband=percent_contraband.y)
 ```
 
+Overall, it seems like police in San Antonio are not likely to search drivers when performing traffic stops, or it is possible that officers in San Diego search drivers excessively. Analysis of other cities, and possibly even the nation, would be necessary to determine which is the case.
+
+We combined San Diego's and San Antonio's race breakdowns into one data frame and creating some sort of visualization to compare the two. When San Antonio and San Diego are put together, the results are not particularly striking, but definitely suggest that San Diego is up to some unusual habits.
+
+*VISUALIZATION HERE*
+
+To really understand how strange San Diego's rates of searching Black and Hispanic people, we decided, with the expert input of our professor, to pull in census data and calculate the rates of stops per capita, divided by race. To accomplish that, we found population totals by race, filtered it for San Diego city, and then did a calculation to combine Asian and Pacific Islander populations into one number to match San Diego's categories. 
+
+It's important to note that these numbers may be a little skewed, because the census's Pacific Islander category may not line up with San Diego Police Department's category. We also chose to drop instances where race was listed as "other" because there was not a good way to match it to a census variable.
 
 ```{r}
 # A is white, Black is B, I is Hispanic, D is Asian, E is pacific island
@@ -487,12 +496,24 @@ california_pop <- california_pop %>%
   add_row(subject_race="asian/pacific islander", estimate=241525) %>%
   select(-GEOID,-NAME,-variable,-moe)
 
+#joining San Diego's population to the stop totals, chose to drop other
+sd_stops_pop_by_race <- san_diego_stops_race %>%
+  inner_join(california_pop, by=c("subject_race")) %>%
+  rename(population=estimate) %>%
+  head(4)
+
+#calculating stops per capita for each of the known race categories
+sd_stops_pop_by_race <- sd_stops_pop_by_race %>%
+  mutate(percent_stopped=(stops/population)*100) %>%
+  arrange(desc(percent_stopped))
 ```
 
-***Big Picture Conclusions (UNDER CONSTRUCTION)***
+The stops per capita results for San Diego are particularly damning. Roughly 47% of the Black adult population in the city of San Diego has been stopped by the police, and 27% of the Hispanic adult population has been stopped. Only 17% of the white population has been pulled over, followed by about 13% of the Asian/Pacific Islander population, which are also the categories with the lowest search rates when stopped. 
 
-Overall, it seems like police in San Antonio are not likely to search drivers when performing traffic stops, or it is possible that officers in San Diego search drivers excessively. Analysis of other cities, and possibly even the nation, would be necessary to determine which is the case.
+Search rates seem to correlate with the rates at which the different races are stopped, but the disparity shows up in the rates of contraband found versus searches conducted among different races, which is particularly visible when broken down even further into age categories.
 
-For the final iteration of our project, we will be combining San Diego's and San Antonio's race breakdowns into one data frame and creating some sort of visualization to compare the two. 
+***Big Picture Conclusions***
 
 With our current analysis, we would say that our findings in San Diego of disparity between the rates of searches conducted and contraband found among Black and Hispanic drivers compared to the rates among white drivers are newsworthy, and may carry implications of racial bias in policies and decisions around searching drivers during traffic stops.
+
+-30-
