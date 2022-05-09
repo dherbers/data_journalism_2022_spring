@@ -35,11 +35,48 @@ maine_ppp <- read_csv("data/maine_ppp.csv") %>% clean_names()
 **Q1.**. Write R code that generates some basic descriptive statistics that allows you to describe the applications from your state. This code should produce results that describe the data in different ways: how many applications there are, along with ways to understand the typical and most frequent values for columns you find interesting or newsworthy. You should produce at least five (5) descriptive statistics and write up a summary of the data using them.
 
 ```{r}
+maine_ppp_clean <- maine_ppp %>%
+  distinct() %>%
+  unique() %>%
+  mutate(zip = str_sub(zip, 1, 5))
+```
 
+```{r}
+maine_by_county <- maine_ppp_clean %>%
+  drop_na(project_county_name) %>%
+  group_by(project_county_name) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+maine_by_zip <- maine_ppp_clean %>%
+  drop_na(zip) %>%
+  group_by(zip) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+maine_by_lender <- maine_ppp_clean %>%
+  group_by(lender) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+maine_bsb_loans <- maine_ppp_clean %>%
+  filter(lender == "Bangor Savings Bank") %>%
+  distinct() %>%
+  group_by(project_county_name) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+cumberland_loans <- maine_ppp_clean %>%
+  filter(project_county_name == "CUMBERLAND") %>%
+  nrow()
+
+percent_bsb_cumberland <- (2387/12950)*100
 ```
 
 **A1.** 
+Maine had 47,407 PPP loan applications, I cleaned the data for distinct and unique entries, though there were some repeated names in Open Refine, there are no repeated ID numbers, so I believe that those are unique loans. I also cleaned up the city column and the county column and standardized the zipcode column to 5 digit entries.
 
+Cumberland County has the most loans in Maine by far, 12950, followed by York County with 6483, Penobscot with 4083, Hancock with 3953, and Kennebec with 2872. Cumberland County is the most populous, and has Portland, the largest city in Maine, so the number of loans makes sense. York County is directly below Cumberland, with the outskirts of Portland and many coastal tourist towns. Kennebec is surprisingly low considering it features the capital city Augusta, though Augusta is the third least populous state capital. The individual zip code with the highest total amount of loans was 04101 with 2073 loans, which encompasses Portland, followed by 04401 with 1633 in Penobscot which has the city Bangor. Bangor Savings Bank was actually the lender that serviced the most loans in Maine, 6939 total, and is the largest bank in Maine with 54 locations. Most of Bangor Savings Bank's loans were in Cumberland County and Penobscot County, with 2387 and 1169 respectively. Bangor Savings Bank serviced roughly 18% of the PPP loans out of Cumberland County.
 
 ## Geographic Analysis
 
