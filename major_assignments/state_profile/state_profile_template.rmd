@@ -148,13 +148,24 @@ ggplot() +
 ```
 
 **A2.** 
-The findings seem pretty consistent with my prior findings, 
+The findings seem pretty consistent with my prior findings, the zip code that contains Portland has a higher per capita loan amount than the state overall by far, and a lot of areas in the state had negative values. It's interesting that there are some zip codes in the North that have a pretty high per capita difference from the state, they could be worth further investigation. The county breakdowns are more interesting, I expected Cumberland and York counties to be in the top tier, but it looks like Hancock and Knox counties have the highest rates of loans per 100k people. This is surprising because Knox County had not been notable so far.
 
 ## Lender Analysis
 
 **Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below.
 
 ```{r}
+maine_by_lender <- maine_ppp_clean %>%
+  group_by(lender) %>%
+  summarise(count=n(), total_amount=sum(amount))%>%
+  mutate(average_amount = total_amount/count) %>%
+  arrange(desc(count))
+
+#all loans have 0 undisbursed, other than 3 N/A
+maine_undisbursed <- maine_ppp_clean %>%
+  group_by(undisbursed_amount) %>%
+  summarise(count=n())
+
 
 ```
 
