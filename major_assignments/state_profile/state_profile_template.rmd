@@ -166,11 +166,37 @@ maine_undisbursed <- maine_ppp_clean %>%
   group_by(undisbursed_amount) %>%
   summarise(count=n())
 
+#lender and amount relationship
+maine_amount_lender <- maine_ppp_clean %>%
+  group_by(lender, amount) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+ggplot() +
+  geom_point(data=maine_amount_lender, aes(x=amount, y=count)) 
+
+#amount breakdown
+lender_amount_groups <-maine_amount_lender %>%
+mutate(
+  amount_groups = case_when(
+    amount < 1000 ~ 'under_1k',
+    amount >= 1000 & amount < 10000 ~ '1k_10k',
+    amount >= 10000 & amount < 50000 ~ '10k_50k',
+    amount >= 50000 & amount < 100000 ~ '50k_100k',
+    amount >= 100000 & amount < 500000 ~ '100k_500k',
+    amount >= 500000 & amount < 1000000 ~ '500k_1m',
+    amount >= 1000000 & amount < 5000000 ~ '1m_5m',
+    amount >= 5000000 & amount < 8000000 ~ '5m_8m',
+    amount >= 8000000 ~'8m+'
+))
+
+ggplot() +
+  geom_point(data=lender_amount_groups, aes(x=amount_groups, y=count))
 
 ```
 
 **A3.** 
-
+Lenders tend to give the most loans in the 10k to 50k category, and looking at the data frame shows that those loans are mostly for $20800 or $20833, which makes me wonder if there's a reason that a bunch of banks gave loans for that specific amount. There were a few loans above $1 million, and most of the banks that lended for those loans only did one in that value range, so it seems like there wasn't one bank that was doing large values. There are also many loans under $1,000, which is interesting because that is probably not a significant amount of money for most businesses.
 
 ## Industry Analysis
 
@@ -181,13 +207,75 @@ Does the distribution of PPP applications by the top 10 industries (by number of
 Create a county-level map showing the differences between the PPP applications and the Census business data for one of the top 10 industry codes. You can do this either using ggplot or Datawrapper (if the latter, publish that map and include the URL below).
 
 ```{r}
+census_naics <- read_csv("/Users/destinyherbers/Downloads/cbp19co.txt") %>% clean_names()
 
+all_fips <- fips_codes %>% as_tibble()
+maine_fips <- all_fips %>%
+  filter(state == "ME")
+
+maine_fips <- maine_fips %>%
+  mutate(fips=str_c(state_code, county_code)) %>%
+  mutate(county = trimws(toupper(county))) %>%
+  mutate(county = str_remove_all(county, " COUNTY"))
+
+maine_ppp_fips <- maine_fips %>%
+  left_join(maine_ppp_clean, by=c("county" = "project_county_name"))
+
+maine_naics_totals <- maine_ppp_fips %>%
+  group_by(naics_code) %>%
+  summarise(count=n())%>%
+  arrange(desc(count)) %>%
+  head(10)
+
+clean_census <- census_naics %>%
+  filter(!str_detect(naics,"-")) %>%
+  filter(!str_detect(naics, "/")) %>%
+  filter(str_length(naics) == 6) %>%
+  filter(fipstate == 23) %>%
+  mutate(fips = str_c(fipstate, fipscty))
+
+maine_census_naics_totals <- clean_census %>%
+  group_by(naics) %>%
+  summarise(businesses = sum(est))%>%
+  arrange(desc(businesses)) %>%
+  head(10)
+
+no_self_or_sole <- maine_ppp_fips %>%
+  filter(business_type != "Sole Proprietorship", business_type != "Self-Employed Individuals") %>%
+    group_by(naics_code) %>%
+    summarise(count=n())%>%
+    arrange(desc(count)) %>%
+    head(10)
+
+#812112, beauty salon analysis
+maine_salon_ppp <- maine_ppp_fips %>% 
+  filter(naics_code == "812112") %>% 
+  group_by(county, fips) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+census_salon_maine <- clean_census %>%
+  filter(naics == "812112") %>% 
+  group_by(fips) %>% 
+  summarise(businesses = sum(est))%>%
+  mutate(businesses = replace_na(businesses, 0)) %>%
+  arrange(desc(businesses)) 
+
+maine_salons_combined <- maine_salon_ppp %>%
+  inner_join(census_salon_maine, by=c("fips")) %>%
+  mutate(difference = total-businesses)
+
+write.csv(maine_salons_combined, file = "maine_salons_combined.csv")
 ```
 
 **A4.** 
+Maine overall has the most businesses in naics code 722511, which is full service restaurants with 1483, followed by 722513, which is limited service restaurants with 998. Those categories also show up in the ppp loan data, full service restaurants have the second highest number of loans with 2057, and limited service restaurants are the eighth highest with 732 loans. The industry with the most ppp loans was 114112, businesses handling shellfish, with 2815 loan applications. This industry does not appear in the top census data. With self employed individuals and sole proprietorships removed, the shellfish industry falls to number five, and the top spots match pretty well with the census data. 
+
+Visualization: https://datawrapper.dwcdn.net/r3cJw/1/
 
 ## Summary
 
 **Q5.** What is the most promising story idea that you have found during this exploration? How would you approach reporting it out and what other information/data would you need to do that? What would be the minimum story you could get from this, and what would be the maximum story?
 
 **A5.**
+Most of Maine's data is pretty straightforward, there were very few high-value loans and for the most part the loan density was pretty equal to population density, centered around the significant cities. It is notable that Knox County has a very high rate of loan applications per 100 thousand people because it's a very small county with few towns and mostly a ton of coastland, so I would not expect to see so many businesses applying for loans. The high amount of loans could be from self-employed fishermen or an industry like that. To report about Knox County, I would need to explore the loans from that county, what addresses they come from and what naics codes they reported to see if there's a logical explanation for the density. There also were surprisingly few loans in the center of the state, particularly around the capital, Augusta, which could be interesting to report about. As a minimum story, I think that it's interesting that the loans are concentrated around the coast and the northern border of Maine, and it would be cool to contrast that with business and population densities. The maximum story would probably involve investigating the small coastal counties that have unexpectedly large loan application per capita rates, and to report out what drove all of those applications. If it is the shellfish industry, which I suspect it might be from the previous question, it would be cool to dive deeper into how the seafood workers were impacted by the pandemic.
