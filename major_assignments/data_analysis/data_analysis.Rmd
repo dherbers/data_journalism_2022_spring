@@ -466,7 +466,8 @@ Overall, it seems like police in San Antonio are not likely to search drivers wh
 
 We combined San Diego's and San Antonio's race breakdowns into one data frame and creating some sort of visualization to compare the two. When San Antonio and San Diego are put together, the results are not particularly striking, but definitely suggest that San Diego is up to some unusual habits.
 
-*VISUALIZATION HERE*
+*San Diego vs. San Antonio Visualization*
+https://datawrapper.dwcdn.net/Er7if/1/ 
 
 To really understand how strange San Diego's rates of searching Black and Hispanic people, we decided, with the expert input of our professor, to pull in census data and calculate the rates of stops per capita, divided by race. To accomplish that, we found population totals by race, filtered it for San Diego city, and then did a calculation to combine Asian and Pacific Islander populations into one number to match San Diego's categories. 
 
@@ -509,6 +510,11 @@ sd_stops_pop_by_race <- sd_stops_pop_by_race %>%
 ```
 
 The stops per capita results for San Diego are particularly damning. Roughly 47% of the Black adult population in the city of San Diego has been stopped by the police, and 27% of the Hispanic adult population has been stopped. Only 17% of the white population has been pulled over, followed by about 13% of the Asian/Pacific Islander population, which are also the categories with the lowest search rates when stopped. 
+
+*San Diego per Capita Visualization*
+https://datawrapper.dwcdn.net/HgUCF/1/ 
+
+The proportions of people of color being pulled over in San Diego are staggering and bring up questions about how often individual people are stopped. We figure that the disparity is so dramatic that removing repeat offenders would not change the rankings, but unfortunately we do not have the data to filter for people who have only been stopped once, so we cannot answer that question. To report further, we would want to access that data.
 
 Search rates seem to correlate with the rates at which the different races are stopped, but the disparity shows up in the rates of contraband found versus searches conducted among different races, which is particularly visible when broken down even further into age categories.
 

@@ -71,22 +71,84 @@ cumberland_loans <- maine_ppp_clean %>%
   nrow()
 
 percent_bsb_cumberland <- (2387/12950)*100
+
+maine_by_loan_status <- maine_ppp_clean %>%
+  group_by(loan_status) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
+
+exemption_4 <- maine_ppp_clean %>%
+  filter(loan_status == "Exemption 4") %>%
+  group_by(undisbursed_amount) %>%
+  summarise(count=n())%>%
+  arrange(desc(count))
 ```
 
 **A1.** 
 Maine had 47,407 PPP loan applications, I cleaned the data for distinct and unique entries, though there were some repeated names in Open Refine, there are no repeated ID numbers, so I believe that those are unique loans. I also cleaned up the city column and the county column and standardized the zipcode column to 5 digit entries.
 
-Cumberland County has the most loans in Maine by far, 12950, followed by York County with 6483, Penobscot with 4083, Hancock with 3953, and Kennebec with 2872. Cumberland County is the most populous, and has Portland, the largest city in Maine, so the number of loans makes sense. York County is directly below Cumberland, with the outskirts of Portland and many coastal tourist towns. Kennebec is surprisingly low considering it features the capital city Augusta, though Augusta is the third least populous state capital. The individual zip code with the highest total amount of loans was 04101 with 2073 loans, which encompasses Portland, followed by 04401 with 1633 in Penobscot which has the city Bangor. Bangor Savings Bank was actually the lender that serviced the most loans in Maine, 6939 total, and is the largest bank in Maine with 54 locations. Most of Bangor Savings Bank's loans were in Cumberland County and Penobscot County, with 2387 and 1169 respectively. Bangor Savings Bank serviced roughly 18% of the PPP loans out of Cumberland County.
+Cumberland County has the most loans in Maine by far, 12950, followed by York County with 6483, Penobscot with 4083, Hancock with 3953, and Kennebec with 2872. Cumberland County is the most populous, and has Portland, the largest city in Maine, so the number of loans makes sense. York County is directly below Cumberland, with the outskirts of Portland and many coastal tourist towns. Kennebec is surprisingly low considering it features the capital city Augusta, though Augusta is the third least populous state capital. The individual zip code with the highest total amount of loans was 04101 with 2073 loans, which encompasses Portland, followed by 04401 with 1633 in Penobscot which has the city Bangor. Bangor Savings Bank was actually the lender that serviced the most loans in Maine, 6939 total, and is the largest bank in Maine with 54 locations. Most of Bangor Savings Bank's loans were in Cumberland County and Penobscot County, with 2387 and 1169 respectively. Bangor Savings Bank serviced roughly 18% of the PPP loans out of Cumberland County. 43953 of the loans are paid in full, and 3454 are listed as Exemption 4, which I researched and found to most likely be referencing FOIA Exemption 4, which relates to trade secrets. I filtered to look specifically at Exemption 4 loans, and they had all other information present, and all but three loans had no undisbursed amount, so I am unsure how the payment status is FOIA exempt information.
 
 ## Geographic Analysis
 
 **Q2.** Write R code that examines geographic patterns for PPP loans in your state, using Census population information to calculate a per-capita figure for the state and counties and zip codes. Then, make a county map using ggplot showing the per-capita data and a zip code map showing the difference from the statewide per-capita figure. Describe the most interesting or newsworthy findings based on your exploration.
 
 ```{r}
+#state population of Maine is 1335492
+#state per capita is (47407/1335492)*100000 = 3550
+maine_pop <- get_acs (geography = "state",
+                           variables=c("B01001_001"),
+                           year=2019,
+                           state = 'ME')
+
+#by zip with state difference
+maine_pop_zip <- get_acs (geography = "zcta",
+                           variables=c("B01001_001"),
+                           year=2019,
+                           state = 'ME',
+                           geometry = TRUE) %>%
+                           rename(zip=NAME)
+
+maine_pop_zip <- maine_pop_zip %>%
+        mutate(zip = str_remove_all(zip, "ZCTA5 ")) %>%
+        select(-GEOID,-variable,-moe)
+
+maine_ppp_zip_pop <- maine_pop_zip %>%
+  inner_join(maine_by_zip, by=c("zip")) %>%
+  mutate(loans_per_100k = (count/estimate)*100000) %>%
+  mutate(state_difference = (3550 - loans_per_100k))
+
+ggplot() +
+  geom_sf(data=maine_ppp_zip_pop, aes(fill=state_difference)) +
+  theme_minimal() +
+  scale_fill_viridis_b(option="magma",trans = "log") 
+
+#by county
+maine_pop_county <- get_acs (geography = "county",
+                           variables=c("B01001_001"),
+                           year=2019,
+                           state = 'ME',
+                           geometry = TRUE) %>%
+                    mutate(NAME = trimws(toupper(NAME))) %>%
+                    mutate(NAME = str_remove_all(NAME, " COUNTY, MAINE"))
+
+maine_pop_county <- maine_pop_county %>%
+  rename(project_county_name = NAME) 
+
+maine_ppp_county_pop <- maine_pop_county %>%
+  inner_join(maine_by_county, by=c("project_county_name")) %>%
+  select(-GEOID,-variable,-moe) %>%
+  mutate(loans_per_100k = (count/estimate)*100000)
+
+ggplot() +
+  geom_sf(data=maine_ppp_county_pop, aes(fill=loans_per_100k)) +
+  theme_minimal() +
+  scale_fill_viridis_b(option="magma",trans = "log") 
 
 ```
 
 **A2.** 
+The findings seem pretty consistent with my prior findings, 
 
 ## Lender Analysis
 
