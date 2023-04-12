@@ -116,3 +116,15 @@ age_65_and_up <- san_diego_stops %>%
   filter(subject_age >=65) %>%
   nrow()
 ```
+
+```{r}
+fara_shortforms <- fara_docs %>%
+  filter(Document.Type == "Short-Form") %>%
+  mutate(year_2020 = case_when (
+    Date.Stamped == str_detect("2020", Date.Stamped) ~ 'true',
+    TRUE ~ 'false'
+  ))
+##this isn't working
+
+
+```
